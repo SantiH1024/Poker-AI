@@ -1,1 +1,1 @@
-# setting the game up and starting it
+# keep rules and card mechanics here
