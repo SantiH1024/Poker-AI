@@ -33,8 +33,6 @@ def fullHand(player_pre_flop_hand,flop):
     full_hand = player_pre_flop_hand + flop
     return full_hand
 
-
-
 def main():
     deck = makeDeck()
     hand = playerPreFlopHand(deck)
