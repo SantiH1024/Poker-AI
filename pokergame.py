@@ -45,6 +45,8 @@ class Game:
         return full_hand
 
     def evaluateHand(self, full_hand):
+        
+        #checks cards for hand type and returns number rank 1 greatest, 10 weakest
         def isPair(full_hand):
             ranks = []
 
@@ -119,3 +121,48 @@ class Game:
                 suits.append(card[1])
 
             return len(set(suits)) == 1
+        
+        def isRoyalFlush(full_hand):
+             if isFlush(full_hand):
+                 ranks = []
+
+                 for card in full_hand:
+                    ranks.append(card[0])
+
+                 ranks.sort()
+                 if ranks == [1,10,11,12,13]:
+                     return True
+                 
+             return False
+        
+        def isStraightFlush(full_hand):
+            if isFlush(full_hand) and isStraight(full_hand):
+                return True
+            return False
+        
+        def isFullHouse(full_hand):
+            if isThreeOfAKind(full_hand) and isPair(full_hand):
+                return True
+            return False
+        
+        if isRoyalFlush(full_hand):
+            return 1
+        elif isStraightFlush(full_hand):
+            return 2
+        elif isFourOfAKind(full_hand):
+            return 3
+        elif isFullHouse(full_hand):
+            return 4
+        elif isFlush(full_hand):
+            return 5
+        elif isStraight(full_hand):
+            return 6
+        elif isThreeOfAKind(full_hand):
+            return 7
+        elif isTwoPair(full_hand):
+            return 8
+        elif isPair(full_hand):
+            return 9
+        else:
+            return 10
+
