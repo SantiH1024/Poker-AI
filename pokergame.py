@@ -36,6 +36,7 @@ class Game:
         self.hand_over = False
         self.winner = None
         self.checks_in_row = 0
+        self.phase_over = False
 
     def resetHand(self):
         #resets pots, bets, actions, hands, and shuffles deck
@@ -107,8 +108,6 @@ class Game:
         if choice == "fold":
             player.is_active = False
             self.hand_over = True
-            self.winner = opp + 1
-            self.awardPot()
             return True
 
         elif choice == "check":
@@ -118,12 +117,7 @@ class Game:
             self.checks_in_row += 1
 
             if self.checks_in_row == 2:
-                full_hand1 = self.fullHand(self.player1)
-                full_hand2 = self.fullHand(self.player2)
-
-                self.winner = self.showDown(full_hand1, full_hand2)
-                self.hand_over = True
-                self.awardPot()
+                self.phase_over = True
                 return True
 
             self.current_player = opp
@@ -132,22 +126,15 @@ class Game:
         elif choice == "call":
             chips_needed = self.current_bet - player.current_bet
 
-            if chips_needed <= 0:
-                return False
-
-            if chips_needed > player.stack:
+            if chips_needed <= 0 or chips_needed > player.stack:
                 return False
 
             player.place_bet(chips_needed)
             self.pot += chips_needed
 
-            full_hand1 = self.fullHand(self.player1)
-            full_hand2 = self.fullHand(self.player2)
-
-            self.winner = self.showDown(full_hand1, full_hand2)
-            self.hand_over = True
-            self.awardPot()
+            self.phase_over = True
             return True
+
 
         elif choice == "raise":
             if raise_amount <= 0:
@@ -156,16 +143,17 @@ class Game:
             chips_needed = (self.current_bet - player.current_bet) + raise_amount
 
             if chips_needed > player.stack:
-                return False
+                return False # Illegal move
 
             player.place_bet(chips_needed)
             self.pot += chips_needed
             self.current_bet = player.current_bet
-            self.checks_in_row = 0
-
+            
+            # Reset checks since a bet was made
+            self.checks_in_row = 0 
             self.current_player = opp
             return True
-
+        
         return False
     
     def evaluateHand(self, full_hand):
@@ -451,4 +439,30 @@ class Game:
             else:
                 return 0
             
-    
+
+    def betting_round(self):
+        # Reset the switch at the start of every betting round
+        self.phase_over = False
+        
+        # Keep asking for moves until the phase finishes OR someone folds
+        while not self.phase_over and not self.hand_over:
+            
+            # Figure out whose turn it is
+            active_player = self.players[self.current_player]
+            
+            # Ask the player for their move
+            choice = active_player.take_action(None)
+            
+            # Feed choice into action function
+            if choice == "raise":
+                # hard coding a raise amount for now temporarily
+                success = self.action(choice, 50) 
+            else:
+                success = self.action(choice)
+                
+            # Print choice
+            if success:
+                print(f"{active_player.name} chose to {choice}!")
+            else:
+                print(f"Illegal move, please input move again")
+                pass
