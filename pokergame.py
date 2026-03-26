@@ -1,13 +1,14 @@
 #Game functions
 #test
 import random
-import math
 from agents import Player
 
 SUITS = ["Hearts", "Diamonds", "Clubs", "Spades"]
 RANKS = list(range(1, 14))
 
+
 def makeDeck():
+    #generates deck array with 52 cards containing rank and suit
     deck = []
 
     for suit in SUITS:
@@ -17,36 +18,159 @@ def makeDeck():
     random.shuffle(deck)
     return deck
 
+
 class Game:
     def __init__(self):
+        #game variables
         self.deck = makeDeck()
+
         self.player1 = Player("Human", 1000)
         self.player2 = Player("Bot", 1000)
+        self.players = [self.player1, self.player2]
+
         self.flop_cards = []
         self.pot = 0
 
+        self.current_player = 0
+        self.current_bet = 0
+        self.hand_over = False
+        self.winner = None
+        self.checks_in_row = 0
+
+    def resetHand(self):
+        #resets pots, bets, actions, hands, and shuffles deck
+        self.deck = makeDeck()
+        self.flop_cards = []
+        self.pot = 0
+
+        self.current_player = 0
+        self.current_bet = 0
+        self.hand_over = False
+        self.winner = None
+        self.checks_in_row = 0
+
+        self.player1.reset_hand()
+        self.player2.reset_hand()
+
     def playerPreFlopHand(self):
-        # gives player classes created by game preflop cards
+        #creates player's pre-flop hands from deck array
+        self.player1.reset_hand()
+        self.player2.reset_hand()
+
         self.player1.receive_card(self.deck.pop())
         self.player1.receive_card(self.deck.pop())
-    
+
         self.player2.receive_card(self.deck.pop())
         self.player2.receive_card(self.deck.pop())
 
     def flop(self):
-        # draws 3 cards for the flop
+        #creates flop hand from deck array
+        self.flop_cards = []
+
         self.flop_cards.append(self.deck.pop())
         self.flop_cards.append(self.deck.pop())
         self.flop_cards.append(self.deck.pop())
 
     def fullHand(self, player):
-        # gets cards in player hand and community flop cards
-        full_hand = player.hand + self.flop_cards
-        return full_hand
+        #combines player pre-flop hand with flop to create full hand
+        return player.hand + self.flop_cards
+    
+    def awardPot(self):
+        #awards pot to player that wins
+        if self.winner == 1:
+            self.player1.stack += self.pot
 
+        elif self.winner == 2:
+            self.player2.stack += self.pot
+        #in case of a tie splits pot and player 1 gets extra chip if applicable
+        elif self.winner == 0:
+            split_amount = self.pot // 2
+            extra_chip = self.pot % 2
+
+            self.player1.stack += split_amount
+            self.player2.stack += split_amount
+
+            if extra_chip == 1:
+                self.player1.stack += 1
+
+        self.pot = 0
+
+    def action(self, choice, raise_amount=0):
+        #checks player choice and adjusts pot
+        if self.hand_over:
+            return False
+
+        p = self.current_player
+        opp = 1 - p
+        player = self.players[p]
+
+        if choice == "fold":
+            player.is_active = False
+            self.hand_over = True
+            self.winner = opp + 1
+            self.awardPot()
+            return True
+
+        elif choice == "check":
+            if player.current_bet != self.current_bet:
+                return False
+
+            self.checks_in_row += 1
+
+            if self.checks_in_row == 2:
+                full_hand1 = self.fullHand(self.player1)
+                full_hand2 = self.fullHand(self.player2)
+
+                self.winner = self.showDown(full_hand1, full_hand2)
+                self.hand_over = True
+                self.awardPot()
+                return True
+
+            self.current_player = opp
+            return True
+
+        elif choice == "call":
+            chips_needed = self.current_bet - player.current_bet
+
+            if chips_needed <= 0:
+                return False
+
+            if chips_needed > player.stack:
+                return False
+
+            player.place_bet(chips_needed)
+            self.pot += chips_needed
+
+            full_hand1 = self.fullHand(self.player1)
+            full_hand2 = self.fullHand(self.player2)
+
+            self.winner = self.showDown(full_hand1, full_hand2)
+            self.hand_over = True
+            self.awardPot()
+            return True
+
+        elif choice == "raise":
+            if raise_amount <= 0:
+                return False
+
+            chips_needed = (self.current_bet - player.current_bet) + raise_amount
+
+            if chips_needed > player.stack:
+                return False
+
+            player.place_bet(chips_needed)
+            self.pot += chips_needed
+            self.current_bet = player.current_bet
+            self.checks_in_row = 0
+
+            self.current_player = opp
+            return True
+
+        return False
+    
     def evaluateHand(self, full_hand):
         
-        #checks cards for hand type and returns number rank, 10 greatest, 1 weakest
+        #checks cards for hand type and returns number rank, 1 greatest, 10 weakest
         #if there is a hand type tie, checks which hand has higher made hand or kicker
         def isPair(full_hand):
             ranks = []
@@ -105,14 +229,19 @@ class Game:
 
             ranks.sort()
 
+            if ranks == [1, 2, 3, 4, 5]:
+                return True
+
             if ranks == [1, 10, 11, 12, 13]:
                 return True
 
             if len(set(ranks)) != 5:
                 return False
+
             for i in range(4):
                 if ranks[i + 1] != ranks[i] + 1:
-                    return False            
+                    return False
+
             return True
 
         def isFlush(full_hand):
@@ -301,7 +430,9 @@ class Game:
         else:
             return getHighCardValue(full_hand)
 
+
     def showDown(self, full_hand1, full_hand2):
+        #evaluates player hands and returns 1 for player1 win, 2 for player2 win, and 0 for tie
         player1_value = self.evaluateHand(full_hand1)
         player2_value = self.evaluateHand(full_hand2)
 
@@ -319,3 +450,5 @@ class Game:
                 return 2
             else:
                 return 0
+            
+    

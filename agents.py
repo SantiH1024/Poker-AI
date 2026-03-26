@@ -11,7 +11,7 @@ class Player:
         self.current_bet = 0
         self.is_active = True
 
-    def receive_card(self, card):\
+    def receive_card(self, card):
         # takes a card and holds it
         self.hand.append(card)
 
@@ -28,5 +28,5 @@ class Player:
 
     def take_action(self, game_state):
         # make a random move, could be changed to allow someone to make the decision manually
-        valid_moves = ["fold", "call", "raise"]
+        valid_moves = ["check","fold", "call", "raise"]
         return random.choice(valid_moves)
