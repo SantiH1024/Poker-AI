@@ -24,8 +24,8 @@ class Game:
         #game variables
         self.deck = makeDeck()
 
-        self.player1 = Player("Human", 1000)
-        self.player2 = Player("Bot", 1000)
+        self.player1 = Player("Bot1", 1000)
+        self.player2 = Player("Bot2", 1000)
         self.players = [self.player1, self.player2]
 
         self.flop_cards = []
@@ -37,18 +37,19 @@ class Game:
         self.winner = None
         self.checks_in_row = 0
         self.phase_over = False
+        self.first_player = 0
 
     def resetHand(self):
-        #resets pots, bets, actions, hands, and shuffles deck
+        # resets pots, bets, actions, hands, and shuffles deck
         self.deck = makeDeck()
         self.flop_cards = []
         self.pot = 0
 
-        self.current_player = 0
         self.current_bet = 0
         self.hand_over = False
         self.winner = None
         self.checks_in_row = 0
+        self.phase_over = False
 
         self.player1.reset_hand()
         self.player2.reset_hand()
@@ -95,6 +96,7 @@ class Game:
                 self.player1.stack += 1
 
         self.pot = 0
+        self.first_player = 1 - self.first_player
 
     def action(self, choice, raise_amount=0):
         #checks player choice and adjusts pot
@@ -438,11 +440,20 @@ class Game:
                 return 2
             else:
                 return 0
-            
+
+
+    def resetBettingRound(self):
+        self.current_bet = 0
+        self.checks_in_row = 0
+        self.phase_over = False
+
+        self.player1.current_bet = 0
+        self.player2.current_bet = 0    
+        self.current_player = self.first_player   
 
     def betting_round(self):
         # Reset the switch at the start of every betting round
-        self.phase_over = False
+        self.resetBettingRound()
         
         # Keep asking for moves until the phase finishes OR someone folds
         while not self.phase_over and not self.hand_over:
@@ -464,5 +475,87 @@ class Game:
             if success:
                 print(f"{active_player.name} chose to {choice}!")
             else:
-                print(f"Illegal move, please input move again")
+                print(f"Illegal {choice} by {active_player.name}, please input move again.")
                 pass
+
+
+    def show_board(self, show_bot_cards=False):
+        # visualize to terminal
+        print("\n" + "="*30)
+        print(f"POT: {self.pot}")
+        print(f"BOARD: {self.flop_cards if self.flop_cards else '[  ]'}")
+        print(f"{self.player1.name} Stack: {self.player1.stack} | Hand: {self.player1.hand}")
+        print(f"{self.player2.name} Stack: {self.player2.stack} | Hand: {self.player2.hand}")
+        print("="*30 + "\n")
+
+    def play(self):
+        print("\nNEW HAND STARTING")
+        
+        # Pre-Flop Phase
+        self.playerPreFlopHand()
+        self.show_board()
+        self.betting_round()
+        
+        # did we fold pre flop
+        if self.hand_over:
+            # Set the winner variable based on who folded
+            if self.player1.is_active:
+                self.winner = 1
+            else:
+                self.winner = 2
+            
+            print(f"\nOpponent folded! {self.players[self.winner - 1].name} wins {self.pot} chips!")
+        
+            self.awardPot() 
+            return # exits loop
+            
+        # playing the flop
+        self.flop()
+        self.show_board()
+        self.betting_round()
+        
+        # did we fold after flop
+        if self.hand_over:
+            # Set the winner variable based on who folded
+            if self.player1.is_active:
+                self.winner = 1
+            else:
+                self.winner = 2
+            
+            print(f"\nOpponent folded! {self.players[self.winner - 1].name} wins {self.pot} chips!")
+        
+            self.awardPot() 
+            return # exits loop
+            
+        # if we made it this far showdown happens
+        print("\nSHOWDOWN")
+        self.show_board()
+        
+        full_hand1 = self.fullHand(self.player1)
+        full_hand2 = self.fullHand(self.player2)
+        
+        self.winner = self.showDown(full_hand1, full_hand2)
+        
+        # Run the evaluation to find out what hands they had
+        val1 = self.evaluateHand(full_hand1)
+        val2 = self.evaluateHand(full_hand2)
+        
+        # translate hand value into name
+        hand_names = {
+            1: "a Royal Flush", 2: "a Straight Flush", 3: "Four of a Kind",
+            4: "a Full House", 5: "a Flush", 6: "a Straight",
+            7: "Three of a Kind", 8: "Two Pair", 9: "a Pair", 10: "a High Card"
+        }
+        
+        if self.winner == 1:
+            hand_type = hand_names[val1[0]]
+            print(f"{self.player1.name} wins with {hand_type}!")
+        elif self.winner == 2:
+            hand_type = hand_names[val2[0]]
+            print(f"{self.player2.name} wins with {hand_type}!")
+        else:
+            hand_type = hand_names[val1[0]]
+            print(f"It's a tie! Both players had {hand_type}. Splitting the pot.")
+            
+        # award pot
+        self.awardPot()

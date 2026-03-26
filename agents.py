@@ -28,5 +28,5 @@ class Player:
 
     def take_action(self, game_state):
         # make a random move, could be changed to allow someone to make the decision manually
-        valid_moves = ["check","fold", "call", "raise"]
+        valid_moves = ["check", "fold", "call", "raise"]
         return random.choice(valid_moves)
