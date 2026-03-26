@@ -49,6 +49,7 @@ class Game:
         self.hand_over = False
         self.winner = None
         self.checks_in_row = 0
+        self.phase_over = False
 
         self.player1.reset_hand()
         self.player2.reset_hand()
@@ -466,3 +467,11 @@ class Game:
             else:
                 print(f"Illegal move, please input move again")
                 pass
+
+    def resetBettingRound(self):
+        self.current_bet = 0
+        self.checks_in_row = 0
+        self.phase_over = False
+
+        self.player1.current_bet = 0
+        self.player2.current_bet = 0
