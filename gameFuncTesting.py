@@ -1,7 +1,6 @@
 #game function testing
 
-from pokergame import Game, makeDeck
-from agents import Player
+from pokergame import Game
 
 game = Game()
 

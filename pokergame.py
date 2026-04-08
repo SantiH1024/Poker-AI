@@ -2,13 +2,14 @@
 #test
 import random
 from agents import Player
+from agents import MonteCarloAgent
 
 SUITS = ["Hearts", "Diamonds", "Clubs", "Spades"]
 RANKS = list(range(1, 14))
 
 
 def makeDeck():
-    #generates deck array with 52 cards containing rank and suit
+    # generates deck array with 52 cards containing rank and suit
     deck = []
 
     for suit in SUITS:
@@ -24,8 +25,8 @@ class Game:
         #game variables
         self.deck = makeDeck()
 
-        self.player1 = Player("Bot1", 1000)
-        self.player2 = Player("Bot2", 1000)
+        self.player1 = MonteCarloAgent("AI_Agent", 1000)
+        self.player2 = Player("Random_Bot", 1000)
         self.players = [self.player1, self.player2]
 
         self.flop_cards = []
@@ -461,8 +462,8 @@ class Game:
             # Figure out whose turn it is
             active_player = self.players[self.current_player]
             
-            # Ask the player for their move
-            choice = active_player.take_action(None)
+            # Ask the player for their move, giving this self parameter lets ai see table
+            choice = active_player.take_action(self)
             
             # Feed choice into action function
             if choice == "raise":
