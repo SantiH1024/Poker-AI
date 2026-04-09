@@ -46,7 +46,7 @@ time_per_hand = total_time / hands_played
 print(f"\nTest results for: \n{TEST_SIMULATIONS} Simulation Depth, \n{RAISE_THRESHOLD} Raise Threshold, \n{CALL_THRESHOLD} Call Threshold")
 print(f"\nTotal Hands Played: {hands_played} out of {MAX_HANDS}")
 print(f"Time Per Hand: {time_per_hand:.3f} seconds")
-print(f"Smart AI Win Rate:   {(ai_wins/hands_played)*100:.2f}%")
+print(f"AI Win Rate:   {(ai_wins/hands_played)*100:.2f}%")
 print(f"Random Bot Win Rate: {(random_wins/hands_played)*100:.2f}%")
 print("FINAL CHIP STACKS")
 print(f"{poker_game.player1.name}: {poker_game.player1.stack} chips")
