@@ -6,17 +6,16 @@ poker_game = Game()
 
 # EDIT TESTING PARAMETERS HERE
 # depth of agent simulation, number of hands, 
-# agents aggressiveness (.85+.6 = super passive, .4+.2 = super aggresive)
-TEST_SIMULATIONS = 10 
+# agents aggressiveness (.85+.6 = super passive, .65+.4 = average, .4+.15 = super aggresive)
+TEST_SIMULATIONS = 100
 MAX_HANDS = 100
-RAISE_THRESHOLD = 0.80
-CALL_THRESHOLD = 0.6
+RAISE_THRESHOLD = 0.65
+CALL_THRESHOLD = 0.4
 
 poker_game.player1.simulations = TEST_SIMULATIONS 
 poker_game.player1.raise_thresh = RAISE_THRESHOLD
 poker_game.player1.call_thresh = CALL_THRESHOLD
 
-print(f"\n STARTING TEST: {TEST_SIMULATIONS} Simulations/Move...")
 start_time = time.time()
 
 hands_played = 0
@@ -41,11 +40,12 @@ for i in range(MAX_HANDS):
 
 # calculate testing time
 total_time = time.time() - start_time
+time_per_hand = total_time / hands_played
 
 # test report print statements
 print(f"\nTest results for: \n{TEST_SIMULATIONS} Simulation Depth, \n{RAISE_THRESHOLD} Raise Threshold, \n{CALL_THRESHOLD} Call Threshold")
 print(f"\nTotal Hands Played: {hands_played} out of {MAX_HANDS}")
-print(f"Time Elapsed: {total_time:.3f} seconds")
+print(f"Time Per Hand: {time_per_hand:.3f} seconds")
 print(f"Smart AI Win Rate:   {(ai_wins/hands_played)*100:.2f}%")
 print(f"Random Bot Win Rate: {(random_wins/hands_played)*100:.2f}%")
 print("FINAL CHIP STACKS")
