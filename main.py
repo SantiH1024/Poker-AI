@@ -6,7 +6,7 @@ def main():
     print("Starting Poker Game...")
     poker_game = Game()
 
-    while True:
+    for i in range(100):
         poker_game.resetHand()
         poker_game.play()
         
