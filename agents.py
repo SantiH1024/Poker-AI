@@ -33,7 +33,7 @@ class Player:
         valid_moves = ["check", "fold", "call", "raise"]
         return random.choice(valid_moves)
     
-# include player in parameters so it inherits reused functions
+# inherits reused player functions
 class MonteCarloAgent(Player):
     def __init__(self, name, starting_chips, simulations = 50, raise_thresh=0.60, call_thresh=0.35):
         self.name = name
